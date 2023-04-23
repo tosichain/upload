@@ -1,10 +1,10 @@
 {
   "name": "@tosichain/upload",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "command to turn a docker container into a TOSI initial image",
-  "main": "index.js",
+  "main": "upload.js",
   "bin": {
-    "upload": "bin/index.js"
+    "upload": "bin/upload.js"
   },
   "author": "TOSI",
   "license": "ISC"
