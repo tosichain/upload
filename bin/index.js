@@ -18,8 +18,9 @@ RUN mkdir -p /init_image/boot
 # make sure it's there
 RUN mkdir -p /image/boot/initial
 RUN cp -r /image/boot/initial /init_image/boot
+COPY --from=ghcr.io/tosichain/standard-stage2-loader:master@sha256:2a004d9a96fa8e7e76fbfca376a110dcd5078f4a94dbf6c1fd4beaa5031a2444 /stage2.squashfs /init_image/boot/stage2.squashfs
 RUN mksquashfs /image /init_image/boot/contract.squashfs -reproducible -all-root -noI -noId -noD -noF -noX -mkfs-time 0 -all-time 0
-RUN CID=$(IPFS_PATH=/tmp/.ipfs ipfs --offline add -Q --cid-version=1 -r /init_image/) && IPFS_PATH=/tmp/.ipfs ipfs --offline dag export $CID > /init_image.car && echo "CID: $CID" > /init_image.cid
+RUN CID=$(IPFS_PATH=/tmp/.ipfs ipfs --offline add -Q --cid-version=1 -r /init_image/) && IPFS_PATH=/tmp/.ipfs ipfs --offline dag export $CID > /init_image.car && echo -n "$CID" > /init_image.cid
 `
 
 const buildImage = async () => {
@@ -97,7 +98,7 @@ const cleanupContainer = async (containerID) => {
 
 const printCID = async () => {
   return new Promise((resolve, reject) => {
-    fs.readFile(path.join(__dirname, 'init_image.cid'), 'utf8', (err, data) => {
+    fs.readFile('init_image.cid', 'utf8', (err, data) => {
       if (err) {
         reject(`Error reading init_image.cid: ${err.message}`);
         return;
