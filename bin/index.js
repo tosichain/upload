@@ -18,7 +18,7 @@ RUN mkdir -p /init_image/boot
 # make sure it's there
 RUN mkdir -p /image/boot/initial
 RUN cp -r /image/boot/initial /init_image/boot
-COPY --from=stage2:1.0 /stage2.squashfs /init_image/boot/stage2.squashfs
+COPY --from=ghcr.io/tosichain/standard-stage2-loader:master@sha256:0259ef24cd933b6d4c4c0fb40ed50369a694c87355d28f7a99d1eec4b6ea8686 /stage2.squashfs /init_image/boot/stage2.squashfs
 RUN mksquashfs /image /init_image/boot/contract.squashfs -reproducible -all-root -noI -noId -noF -noX -mkfs-time 0 -all-time 0
 RUN CID=$(IPFS_PATH=/tmp/.ipfs ipfs --offline add -Q --cid-version=1 -r /init_image/) && IPFS_PATH=/tmp/.ipfs ipfs --offline dag export $CID > /init_image.car && echo -n "$CID" > /init_image.cid
 `
@@ -96,26 +96,48 @@ const cleanupContainer = async (containerID) => {
   });
 };
 
-const printCID = async () => {
+const verifierContainer = "ghcr.io/tosichain/tosi-verifier:master@sha256:455f6516f700035bcf7fb704e175325454e91d1d7cecd6eb891c46b8e78e2e47";
+
+const runResult = async (cid) => {
+  return new Promise((resolve, reject) => {
+    exec(`docker run -v ${process.cwd()}:/data/ext-car ${verifierContainer} /app/qemu-test-cid.sh bafybeiczsscdsbs7ffqz55asqdf3smv6klcw3gofszvwlyarci47bgf354 ${cid} bafybeihnujjp7cll46wrpw4tjxjfzphwzob6suzymfjswoparozveeh7zi`, (error, stdout, stderr) => {
+      if (error) {
+        reject(`Error running result: ${error.message}`);
+        return;
+      }
+      console.log(`stderr:\n ${stderr}`);
+      console.log(`stdout:\n ${stdout}`);
+      resolve();
+    });
+  });
+};
+
+
+const getCID = async () => {
   return new Promise((resolve, reject) => {
     fs.readFile('init_image.cid', 'utf8', (err, data) => {
       if (err) {
         reject(`Error reading init_image.cid: ${err.message}`);
         return;
       }
-      console.log(`CID: ${data}`);
-      resolve();
+      resolve(data);
     });
   });
 };
 
 (async () => {
   try {
+    console.log(`Building image...`);
     await buildImage();
     const containerID = await createContainerAndGetID();
     await copyFiles(containerID);
     await cleanupContainer(containerID);
-    await printCID();
+    const cid = await getCID();
+    console.log(`Running image first time`);
+    await runResult(cid);
+    console.log(`Initial state CID: bafybeiczsscdsbs7ffqz55asqdf3smv6klcw3gofszvwlyarci47bgf354`);
+    console.log(`Initial input CID: ${cid}`);
+    console.log(`Function CID: ${cid}`);
   } catch (error) {
     console.error(error);
   }

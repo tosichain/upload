@@ -1,7 +1,7 @@
 {
   "name": "@tosichain/upload",
-  "version": "0.0.6",
-  "description": "command to turn a docker container into a TOSI initial image",
+  "version": "0.0.7",
+  "description": "command to turn a docker container into a TOSI initial input",
   "main": "index.js",
   "bin": {
     "upload": "bin/index.js"
