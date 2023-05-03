@@ -96,7 +96,7 @@ const cleanupContainer = async (containerID) => {
   });
 };
 
-const verifierContainer = "ghcr.io/tosichain/tosi-verifier:master@sha256:455f6516f700035bcf7fb704e175325454e91d1d7cecd6eb891c46b8e78e2e47";
+const verifierContainer = "ghcr.io/tosichain/tosi-verifier:master@sha256:95c6ca885a345bc15462141e95c89a96726027011d40c1cf9869abec89899e5b";
 
 const runResult = async (cid) => {
   return new Promise((resolve, reject) => {
