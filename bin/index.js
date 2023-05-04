@@ -107,7 +107,8 @@ const runResult = async (cid) => {
       }
       console.log(`stderr:\n ${stderr}`);
       console.log(`stdout:\n ${stdout}`);
-      resolve();
+      const output = stdout.split("\n");
+      resolve(output[output.length-1]);
     });
   });
 };
@@ -134,7 +135,15 @@ const getCID = async () => {
     await cleanupContainer(containerID);
     const cid = await getCID();
     console.log(`Running image first time`);
-    await runResult(cid);
+    const result1 = await runResult(cid);
+    console.log(`Running image again to make sure it's deterministic`);
+    const result2 = await runResult(cid);
+    if (result1.outputCID !== result2.outputCID) {
+      throw new Error("output CIDs differ in subsequent runs");
+    }
+    if (result1.outputFileHash !== result2.outputFileHash) {
+      throw new Error("output file hash differ in subsequent runs");
+    }
     console.log(`Initial state CID: bafybeiczsscdsbs7ffqz55asqdf3smv6klcw3gofszvwlyarci47bgf354`);
     console.log(`Initial input CID: ${cid}`);
     console.log(`Function CID: ${cid}`);
