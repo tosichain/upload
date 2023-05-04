@@ -100,15 +100,30 @@ const verifierContainer = "ghcr.io/tosichain/tosi-verifier:master@sha256:95c6ca8
 
 const runResult = async (cid) => {
   return new Promise((resolve, reject) => {
-    exec(`docker run -v ${process.cwd()}:/data/ext-car ${verifierContainer} /app/qemu-test-cid.sh bafybeiczsscdsbs7ffqz55asqdf3smv6klcw3gofszvwlyarci47bgf354 ${cid} bafybeihnujjp7cll46wrpw4tjxjfzphwzob6suzymfjswoparozveeh7zi`, (error, stdout, stderr) => {
-      if (error) {
-        reject(`Error running result: ${error.message}`);
-        return;
+    let stdout = "";
+    let stderr = "";
+    const build = spawn('docker', ["run", "-v", `${process.cwd()}:/data/ext-car`, `${verifierContainer}`, `/app/qemu-test-cid.sh`,
+      `bafybeiczsscdsbs7ffqz55asqdf3smv6klcw3gofszvwlyarci47bgf354`, `${cid}`, `bafybeihnujjp7cll46wrpw4tjxjfzphwzob6suzymfjswoparozveeh7zi`]);
+
+    build.stdin.end();
+
+    build.stdout.on('data', (data) => {
+      process.stdout.write(data.toString());
+      stdout = stdout + data.toString();
+    });
+
+    build.stderr.on('data', (data) => {
+      process.stderr.write(data.toString());
+      stderr = stderr + data.toString();
+    });
+
+    build.on('close', (code) => {
+      if (code === 0) {
+        const output = stdout.split("\n");
+        resolve(output[output.length-1]);
+      } else {
+        reject(`docker run exited with code ${code}`);
       }
-      console.log(`stderr:\n ${stderr}`);
-      console.log(`stdout:\n ${stdout}`);
-      const output = stdout.split("\n");
-      resolve(output[output.length-1]);
     });
   });
 };
