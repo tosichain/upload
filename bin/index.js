@@ -19,7 +19,7 @@ RUN mkdir -p /init_image/boot
 RUN mkdir -p /image/boot/initial
 RUN cp -r /image/boot/initial /init_image/boot
 COPY --from=ghcr.io/tosichain/standard-stage2-loader:master@sha256:f9e1ab3b362f6539836d0de36e34146215bff5527b4f1f4d3106063468496b40 /stage2.squashfs /init_image/boot/stage2.squashfs
-RUN mksquashfs /image /init_image/boot/contract.squashfs -reproducible -all-root -noI -noId -noF -noX -mkfs-time 0 -all-time 0
+RUN mksquashfs /image /init_image/boot/contract.squashfs -reproducible -all-root -Xcompression-level 22 -comp zstd -mkfs-time 0 -all-time 0
 RUN CID=$(IPFS_PATH=/tmp/.ipfs ipfs --offline add -Q --cid-version=1 -r /init_image/) && IPFS_PATH=/tmp/.ipfs ipfs --offline dag export $CID > /init_image.car && echo -n "$CID" > /init_image.cid
 `
 
